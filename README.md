@@ -1,45 +1,68 @@
 # PlanYourFit
 
-Projekt demonstracyjny z klasycznym frontendem **HTML + CSS + JavaScript**, API w Node.js/Express i bazą MySQL. Frontend nie używa Reacta, bundlera ani procesu kompilacji — jest serwowany bezpośrednio przez backend.
+## Krótki opis
 
-Domyślnie `DEMO_MODE=true`: aplikacja uruchamia się bez MySQL, a dane są przechowywane w pamięci do restartu serwera. Ustaw `DEMO_MODE=false`, aby używać trwałego zapisu MySQL.
+PlanYourFit to aplikacja webowa do planowania aktywności fizycznych. Pozwala zapisywać treningi w kalendarzu, sprawdzać warunki pogodowe, wyszukiwać miejsca do ćwiczeń oraz analizować podstawowe statystyki aktywności.
+
+## Cel aplikacji
+
+Celem projektu jest ułatwienie planowania ruchu w jednym miejscu: od wyboru aktywności i terminu, przez sprawdzenie pogody lub trasy, aż po monitorowanie realizacji miesięcznego celu. Aplikacja działa jako projekt demonstracyjny z jednym kontem pokazowym.
 
 ## Funkcje
 
-- stałe konto pokazowe i proste logowanie bez JWT, hashowania oraz zabezpieczeń produkcyjnych,
-- kalendarz w widoku miesiąca, tygodnia i dnia,
-- dodawanie, edycja, usuwanie, powtarzanie oraz potwierdzanie aktywności,
-- bieganie, koszykówka i pływanie,
-- pogoda Open-Meteo, geokodowanie Nominatim i czas lokalny,
-- wyszukiwanie hal i basenów przez Overpass API,
-- generowanie pętli biegowych OSRM i podgląd na OpenStreetMap,
-- rekomendacje warunków, statystyki, miesięczny cel, powiadomienia,
-- ustawienia profilu, geolokalizacja oraz jasny/ciemny motyw.
+- logowanie na stałe konto pokazowe,
+- kalendarz aktywności w widoku miesiąca, tygodnia i dnia,
+- dodawanie, edycja, usuwanie i potwierdzanie aktywności,
+- obsługa biegania, koszykówki i pływania,
+- zapisywanie statusu aktywności: planowana, wykonana lub anulowana,
+- rekomendacje warunków dla treningu,
+- integracja z pogodą Open-Meteo,
+- geokodowanie lokalizacji przez Nominatim,
+- wyszukiwanie hal sportowych i basenów przez Overpass API,
+- generowanie tras biegowych z użyciem OSRM,
+- podgląd mapy z wykorzystaniem OpenStreetMap i Leaflet,
+- statystyki aktywności oraz miesięczny cel treningowy,
+- ustawienia profilu, domyślnej lokalizacji, promienia wyszukiwania i motywu.
 
-## Stałe konto
+## Technologie
 
-```text
-E-mail: demo@planyourfit.pl
-Hasło:  Demo1234!
-```
+- HTML5, CSS3 i JavaScript po stronie klienta,
+- Node.js,
+- Express.js,
+- MySQL 8,
+- mysql2,
+- Zod,
+- dotenv,
+- cookie-parser,
+- cors,
+- helmet,
+- express-rate-limit,
+- Leaflet i OpenStreetMap,
+- zewnętrzne API: Open-Meteo, Nominatim, Overpass API i OSRM.
 
-Konto ma zawsze identyfikator `1`. Rejestracja i zmiana hasła są celowo wyłączone. Cookie `demo_session=1` jest jawne i przewidywalne — to założenie projektu pokazowego, nie rozwiązanie do wdrożenia publicznego.
+## Model danych
 
-## Struktura
+Główne tabele w bazie danych:
 
-```text
-client/
-  index.html        dokument aplikacji
-  styles.css        główne style
-  vanilla.css       uzupełnienia wersji bez frameworka
-  app.js            interfejs i komunikacja z API
-server/              API Express, integracje i logika aplikacji
-database/            schemat, migracje oraz dane startowe MySQL
-```
+- `users` - dane konta użytkownika, domyślna lokalizacja, preferowany promień wyszukiwania, miesięczny cel aktywności i motyw aplikacji,
+- `activities` - podstawowe dane aktywności: typ, tytuł, data, godziny, lokalizacja, notatka, promień wyszukiwania i status,
+- `running_details` - szczegóły biegania, m.in. dystans docelowy, dystans rzeczywisty, tempo, szacowany czas, trasa GeoJSON i podsumowanie pogody,
+- `basketball_details` - szczegóły koszykówki, typ boiska, wybrane miejsce, pogoda i rekomendacja,
+- `swimming_details` - szczegóły pływania, wybrany basen, pogoda i rekomendacja,
+- `places_cache` - pamięć podręczna znalezionych hal i basenów,
+- `weather_cache` - pamięć podręczna prognozy pogody.
 
-## Uruchomienie
+Relacja główna: jeden użytkownik może mieć wiele aktywności (`users` 1:N `activities`). Każda aktywność może mieć jeden rekord szczegółów zależny od typu treningu.
 
-Wymagane są Node.js 20+ i MySQL 8+.
+## Instrukcja uruchomienia
+
+Wymagania:
+
+- Node.js 20 lub nowszy,
+- npm,
+- MySQL 8 lub nowszy, jeśli aplikacja ma działać z trwałym zapisem danych.
+
+Kroki uruchomienia:
 
 1. Zainstaluj zależności:
 
@@ -47,34 +70,58 @@ Wymagane są Node.js 20+ i MySQL 8+.
    npm install
    ```
 
-2. Utwórz bazę i wczytaj konto pokazowe:
+2. Skopiuj plik `.env.example` do `.env`.
+
+3. Uruchom aplikację w trybie demonstracyjnym bez MySQL:
+
+   ```bash
+   npm start
+   ```
+
+4. Otwórz aplikację w przeglądarce:
+
+   ```text
+   http://localhost:4000
+   ```
+
+Tryb deweloperski z automatycznym restartem serwera:
+
+```bash
+npm run dev
+```
+
+Uruchomienie z MySQL:
+
+1. Ustaw w `.env` wartość `DEMO_MODE=false`.
+2. Uzupełnij dane połączenia z bazą: `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, `DB_PASSWORD`.
+3. Utwórz bazę i wczytaj dane startowe:
 
    ```bash
    mysql -u root -p < database/schema.sql
    mysql -u root -p planyourfit < database/seed.sql
    ```
 
-3. Skopiuj `.env.example` do `.env` i wpisz parametry MySQL.
-
-4. Uruchom cały projekt jednym poleceniem:
+4. Uruchom projekt:
 
    ```bash
    npm start
    ```
 
-5. Otwórz `http://localhost:4000`.
+## Konto pokazowe
 
-Tryb z automatycznym restartem backendu: `npm run dev`. Frontend nie wymaga `npm run build`.
-
-## API
-
-Istniejące endpointy REST pozostają dostępne pod `/api`, w tym aktywności, statystyki, ustawienia, pogodę, miejsca, geokodowanie, trasy i rekomendacje. `POST /api/auth/register` zwraca `405`, ponieważ w projekcie działa tylko jedno konto.
-
-## Testy
-
-```bash
-npm test
-npm run build
+```text
+E-mail: demo@planyourfit.pl
+Hasło:  Demo1234!
 ```
 
-`build` jest kontrolnym poleceniem informującym, że statyczny frontend nie wymaga kompilacji.
+Rejestracja i zmiana hasła są celowo wyłączone, ponieważ projekt korzysta z jednego konta demonstracyjnego.
+
+## Link do wersji online
+
+https://planyourfit.cfolks.pl/
+
+## Autorzy
+
+Autor: Jakub Bała, Szymon Halerz, Wiktor Fornalcczyk
+
+Projekt wykonany jako aplikacja demonstracyjna do planowania aktywności fizycznych.
