@@ -1,0 +1,13 @@
+{
+  "name": "planyourfit",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": ["server"],
+  "scripts": {
+    "dev": "npm run dev -w server",
+    "start": "npm run start -w server",
+    "build": "node -e \"console.log('Frontend HTML/CSS/JS nie wymaga budowania.')\"",
+    "test": "npm run test -w server",
+    "install:all": "npm install"
+  }
+}

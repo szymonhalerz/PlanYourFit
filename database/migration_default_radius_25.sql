@@ -1,0 +1,7 @@
+USE planyourfit;
+
+ALTER TABLE users
+  MODIFY preferred_radius_km TINYINT UNSIGNED NOT NULL DEFAULT 25;
+
+ALTER TABLE activities
+  MODIFY search_radius_km TINYINT UNSIGNED NOT NULL DEFAULT 25;

@@ -1,0 +1,12 @@
+.boot-screen{min-height:100vh;display:grid;place-content:center;text-align:center;gap:12px;background:var(--bg,#f6f8f3)}
+.boot-screen .spinner{margin:auto}.fixed-account{margin-top:20px;padding:16px 18px;border:1px solid var(--border);border-radius:14px;background:var(--surface-soft);line-height:1.7}.fixed-account code{font-family:inherit;font-weight:700;color:var(--text)}
+.auth-page.single-login .auth-panel{max-width:580px}.landing-actions .primary-button{white-space:nowrap}.hero-actions .primary-button{min-width:210px}
+.status-chip{display:inline-flex;align-items:center;padding:5px 10px;border-radius:999px;font-size:12px;font-weight:700}.status-chip.completed{background:#e4f5d0;color:#426226}.status-chip.cancelled{background:#fee4df;color:#a3362c}.status-chip.planned{background:#e5eefc;color:#315f91}
+.static-toast{position:fixed;right:24px;bottom:24px;z-index:3000;display:flex;gap:10px;align-items:center;max-width:390px;padding:14px 18px;border-radius:14px;background:#183d35;color:white;box-shadow:0 16px 50px #0003}.static-toast.error{background:#9f392f}.static-toast button{border:0;background:transparent;color:inherit;font-size:20px;cursor:pointer}
+.plain-icon{display:inline-flex;line-height:1}.plain-icon svg{display:block}.calendar-day.cancelled .event-pill{opacity:.55;text-decoration:line-through}
+.notification-panel{z-index:100}.profile-button small{display:block}.modal select,.modal textarea{font:inherit}.modal .field-error{color:#b53e35}.weather-preview-grid b{white-space:nowrap}
+.map-fallback{height:220px;display:grid;place-content:center;text-align:center;padding:24px;background:linear-gradient(135deg,#edf3e9,#e5eee7);color:var(--muted)}
+.route-map-canvas{height:240px}.details-modal .modal-scroll{padding-bottom:12px}.details-title-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}.details-title-row h2{margin:0}.details-date{margin-top:6px}
+.activity-form .places-list button{width:100%}.activity-form .weather-preview{margin-top:18px}.activity-form .dynamic-section{margin-top:18px}.activity-form .repeat-row{margin-top:18px}
+.settings-demo-note{padding:14px 16px;border-radius:12px;background:var(--surface-soft);color:var(--muted);font-size:14px}.search-results-inline{position:absolute;top:calc(100% + 6px);left:0;right:0;z-index:50}
+@media(max-width:700px){.static-toast{left:14px;right:14px;bottom:84px}.auth-page.single-login .auth-panel{max-width:none}.landing-links{display:none}}
