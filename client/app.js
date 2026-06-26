@@ -155,7 +155,37 @@ function changeGoalInput(e){e.preventDefault();const input=document.querySelecto
 async function saveGoal(e){e.preventDefault();const input=e.currentTarget.querySelector('input[name="goal"]'),goal=Math.max(1,Math.min(100,Number(input?.value||state.user.monthlyActivityGoal||8)));if(!Number.isFinite(goal))return toast('Cel musi wynosić od 1 do 100.','error');try{await api.goal({monthlyActivityGoal:goal});state.user.monthlyActivityGoal=goal;render();toast('Miesięczny cel został zapisany.')}catch(err){toast(err.message,'error')}}
 async function saveProfile(e){e.preventDefault();const form=e.currentTarget,fd=new FormData(form),payload={name:fd.get('name'),email:fd.get('email'),defaultLocation:fd.get('defaultLocation'),defaultPostalCode:fd.get('defaultPostalCode'),defaultLocationLat:fd.get('defaultLocationLat')||null,defaultLocationLng:fd.get('defaultLocationLng')||null,preferredRadiusKm:Number(fd.get('preferredRadiusKm')),theme:state.theme};try{if(payload.defaultLocation&&(!payload.defaultLocationLat||!payload.defaultLocationLng)){const g=await api.geocode({address:payload.defaultLocation,postalCode:payload.defaultPostalCode});payload.defaultLocationLat=g.location.lat;payload.defaultLocationLng=g.location.lng;}await api.profile(payload);Object.assign(state.user,payload);render();toast('Ustawienia zostały zapisane.')}catch(err){toast(err.message,'error')}}
 function syncProfileForm(){const form=document.querySelector('#profile-form');if(!form||!state.user)return state.user;const fd=new FormData(form);Object.assign(state.user,{name:fd.get('name')||state.user.name,email:fd.get('email')||state.user.email,defaultLocation:fd.get('defaultLocation')||'',defaultPostalCode:fd.get('defaultPostalCode')||'',defaultLocationLat:fd.get('defaultLocationLat')||null,defaultLocationLng:fd.get('defaultLocationLng')||null,preferredRadiusKm:Number(fd.get('preferredRadiusKm')||state.user.preferredRadiusKm||25),theme:state.theme});return state.user;}
-function useGeolocation(settings=false){if(!navigator.geolocation)return toast('Przeglądarka nie obsługuje geolokalizacji.','error');navigator.geolocation.getCurrentPosition(async({coords})=>{try{const r=await api.reverse({lat:coords.latitude,lng:coords.longitude});if(settings){const form=document.querySelector('#profile-form'),postal=r.location.postalCode||'';Object.assign(state.user,{defaultLocation:r.location.address,defaultPostalCode:postal,defaultLocationLat:coords.latitude,defaultLocationLng:coords.longitude});if(form){form.defaultLocation.value=state.user.defaultLocation;form.defaultPostalCode.value=state.user.defaultPostalCode;form.defaultLocationLat.value=state.user.defaultLocationLat;form.defaultLocationLng.value=state.user.defaultLocationLng;}}else{Object.assign(state.modalForm,{locationAddress:r.location.address,postalCode:r.location.postalCode||state.modalForm.postalCode,locationLat:coords.latitude,locationLng:coords.longitude});renderOverlay();}toast('Lokalizacja została odczytana.')}catch(err){toast(err.message,'error')}},()=>toast('Nie udało się pobrać lokalizacji.','error'),{timeout:8000,maximumAge:300000});}
+function geolocationErrorMessage(error){
+  if(!window.isSecureContext)return 'Lokalizacja na telefonie wymaga HTTPS lub localhost.';
+  if(error?.code===1)return 'Brak zgody na lokalizację. Włącz uprawnienie w ustawieniach przeglądarki.';
+  if(error?.code===2)return 'Nie udało się ustalić pozycji. Sprawdź GPS lub usługi lokalizacji.';
+  if(error?.code===3)return 'Pobieranie lokalizacji trwało zbyt długo. Spróbuj ponownie na zewnątrz lub przy lepszym sygnale.';
+  return 'Nie udało się pobrać lokalizacji.';
+}
+function useGeolocation(settings=false){
+  if(!navigator.geolocation)return toast('Przeglądarka nie obsługuje geolokalizacji.','error');
+  navigator.geolocation.getCurrentPosition(async({coords})=>{
+    try{
+      const r=await api.reverse({lat:coords.latitude,lng:coords.longitude});
+      if(settings){
+        const form=document.querySelector('#profile-form'),postal=r.location.postalCode||'';
+        Object.assign(state.user,{defaultLocation:r.location.address,defaultPostalCode:postal,defaultLocationLat:coords.latitude,defaultLocationLng:coords.longitude});
+        if(form){
+          form.defaultLocation.value=state.user.defaultLocation;
+          form.defaultPostalCode.value=state.user.defaultPostalCode;
+          form.defaultLocationLat.value=state.user.defaultLocationLat;
+          form.defaultLocationLng.value=state.user.defaultLocationLng;
+        }
+      }else{
+        Object.assign(state.modalForm,{locationAddress:r.location.address,postalCode:r.location.postalCode||state.modalForm.postalCode,locationLat:coords.latitude,locationLng:coords.longitude});
+        renderOverlay();
+      }
+      toast('Lokalizacja została odczytana.');
+    }catch(err){
+      toast(err.message,'error');
+    }
+  },error=>toast(geolocationErrorMessage(error),'error'),{enableHighAccuracy:true,timeout:12000,maximumAge:60000});
+}
 
 function syncModalForm(){const form=document.querySelector('#activity-form');if(!form)return state.modalForm;const fd=new FormData(form),f=state.modalForm,newAddress=fd.get('locationAddress'),newPostal=fd.get('postalCode');if(newAddress!==f.locationAddress||newPostal!==f.postalCode){f.locationLat=null;f.locationLng=null;}['title','activityDate','startTime','endTime','note'].forEach(k=>f[k]=fd.get(k));f.locationAddress=newAddress;f.postalCode=newPostal;f.searchRadiusKm=Number(fd.get('searchRadiusKm'));f.repeatWeekly=fd.get('repeatWeekly')==='on';f.repeatCount=Number(fd.get('repeatCount')||4);if(f.activityType==='running'){f.details.targetDistanceKm=Number(fd.get('targetDistanceKm'));f.details.paceMinPerKm=Number(fd.get('paceMinPerKm'));}return f;}
 async function resolveModalLocation(){const f=syncModalForm();if(f.locationLat!=null&&f.locationLng!=null)return f;const g=await api.geocode({address:f.locationAddress,postalCode:f.postalCode});f.locationLat=g.location.lat;f.locationLng=g.location.lng;return f;}
